@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>주문 입력</h2>
+  <p class="muted">거래처: <b>{{ customer.name }}</b>{% if customer.region %} · 지역: <b>{{ customer.region }}</b>{% endif %}</p>
+  {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+  <form method="post" class="form">
+    <div class="row">
+      <div class="field">
+        <label>어종</label>
+        <select name="fish_type" required>
+          {% for f in fish_types or ["밀치","광어","우럭"] %}
+            <option value="{{ f }}">{{ f }}</option>
+          {% endfor %}
+        </select>
+        <label style="margin-top:10px">사이즈</label>
+        <select name="fish_size" required>
+          {% for s in fish_sizes or ["소","중","대"] %}
+            <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+        <div class="small muted">관리자 설정된 사이즈만 주문 가능</div>
+      </div>
+      <div class="field">
+        <label>도착일</label>
+        <div class="datebar">
+          <button class="btn small {% if delivery_date==yesterday %}primary{% endif %}" type="button" onclick="setDate(-1)">어제</button>
+          <button class="btn small {% if delivery_date==today %}primary{% endif %}" type="button" onclick="setDate(0)">오늘</button>
+          <button class="btn small {% if delivery_date==tomorrow %}primary{% endif %}" type="button" onclick="setDate(1)">내일</button>
+        </div>
+        <input id="delivery_date" name="delivery_date" type="date" value="{{ delivery_date }}" required>
+        <div class="small muted">기본값은 내일 · 필요 시 오늘 버튼 선택</div>
+      </div>
+      <div class="field">
+        <label>주문 수량(kg)</label>
+        <input name="qty_kg" type="number" min="50" step="1" placeholder="예: 50" required>
+        <div class="small muted">최소 50kg 이상</div>
+<div id="price_box" class="small" style="margin-top:10px;padding:10px;border:1px dashed #ddd;border-radius:10px">
+  <div><b>단가</b>: <span id="unit_price">-</span></div>
+  <div><b>예상 총액</b>: <span id="total_price">-</span></div>
+  <div class="muted" style="margin-top:6px">단가가 미정이면 '미정'으로 표시되며 주문은 접수됩니다.</div>
+</div>
+      </div>
+    </div>
+    </div>
+    <label>메모(선택)</label>
+    <textarea name="note" rows="3" placeholder="예: 150kg 부탁 / 오늘 11시 전 도착希望"></textarea>
+    <button class="btn primary" type="submit">주문 보내기</button>
+  </form>
+  <hr>
+  <div class="muted small">결제는 외상거래(주단위 정산)가 기본이며, 결제 안내는 별도 안내됩니다.</div>
+</div>
+
+<script>
+  const PRICES = {{ prices_json | safe }};
+
+// Build allowed fish/size options from admin-enabled catalog for this date.
+function buildOptions(){
+  const ftSel = document.querySelector('select[name="fish_type"]');
+  const szSel = document.querySelector('select[name="fish_size"]');
+  const byFt = {};
+  for(const k in CATALOG){
+    if(CATALOG[k]!==true) continue;
+    const parts = k.split('|');
+    const ft = parts[0], sz = parts[1];
+    if(!byFt[ft]) byFt[ft]=[];
+    byFt[ft].push(sz);
+  }
+  // fill fish types
+  const curFt = ftSel.value;
+  ftSel.innerHTML='';
+  Object.keys(byFt).forEach(ft=>{
+    const opt=document.createElement('option');
+    opt.value=ft; opt.textContent=ft;
+    ftSel.appendChild(opt);
+  });
+  if(curFt && byFt[curFt]) ftSel.value=curFt;
+  // fill sizes for selected fish type
+  function fillSizes(){
+    const ft = ftSel.value;
+    const sizes = (byFt[ft]||[]).slice().sort();
+    const curSz = szSel.value;
+    szSel.innerHTML='';
+    sizes.forEach(sz=>{
+      const opt=document.createElement('option');
+      opt.value=sz; opt.textContent=sz;
+      szSel.appendChild(opt);
+    });
+    if(curSz && sizes.includes(curSz)) szSel.value=curSz;
+    if(!sizes.length){
+      const opt=document.createElement('option');
+      opt.value=''; opt.textContent='선택 불가';
+      szSel.appendChild(opt);
+    }
+  }
+  fillSizes();
+  ftSel.addEventListener('change', ()=>{ fillSizes(); buildOptions();
+document.getElementById('delivery_date').addEventListener('change', syncDateToQuery);
+updatePrice(); });
+}
+
+function syncDateToQuery(){
+  const v = document.getElementById('delivery_date').value;
+  if(!v) return;
+  const url = new URL(window.location.href);
+  url.searchParams.set('date', v);
+  window.location.href = url.toString();
+}
+
+  // NOTE: We pass a pre-serialized JSON string from the backend because Jinja2's
+  // tojson filter cannot serialize dicts with tuple keys (which can happen if an
+  // older DB helper leaks through). This keeps the page resilient.
+  const CATALOG = {{ catalog_json | safe }};
+
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function setDate(delta){
+  const d = new Date();
+  d.setDate(d.getDate()+delta);
+  document.getElementById('delivery_date').value = fmt(d);
+  syncDateToQuery();
+}
+
+function key(ft, sz){return ft + "|" + sz;}
+function fmtNum(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");}
+function updatePrice(){
+  const ft = document.querySelector('select[name="fish_type"]').value;
+  const sz = document.querySelector('select[name="fish_size"]').value;
+  const qty = parseInt(document.querySelector('input[name="qty_kg"]').value || "0", 10);
+  const k = key(ft, sz);
+  const enabled = CATALOG[k] === true;
+  if(!enabled){
+    document.getElementById("unit_price").innerText = "주문불가(작업X)";
+    document.getElementById("total_price").innerText = "-";
+    return;
+  }
+  const p = PRICES[k];
+  document.getElementById("unit_price").innerText = (p===null || p===undefined) ? "미정" : (fmtNum(p) + "원/kg");
+  if(p===null || p===undefined || !qty){
+    document.getElementById("total_price").innerText = qty ? "미정" : "-";
+  }else{
+    document.getElementById("total_price").innerText = fmtNum(p*qty) + "원";
+  }
+}
+document.addEventListener("change", (e)=>{
+  if(e.target.matches('select[name="fish_type"], select[name="fish_size"], input[name="qty_kg"]')) buildOptions();
+document.getElementById('delivery_date').addEventListener('change', syncDateToQuery);
+updatePrice();
+});
+document.addEventListener("input", (e)=>{
+  if(e.target.matches('input[name="qty_kg"]')) buildOptions();
+document.getElementById('delivery_date').addEventListener('change', syncDateToQuery);
+updatePrice();
+});
+buildOptions();
+document.getElementById('delivery_date').addEventListener('change', syncDateToQuery);
+updatePrice();
+</script>
+{% endblock %}

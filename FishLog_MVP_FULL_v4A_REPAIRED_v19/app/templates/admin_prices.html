@@ -1,0 +1,77 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<div class="card">
+  <h2>가격표(원/kg) 입력</h2>
+  <div class="muted small">단가가 비어있어도 주문은 접수됩니다. (단가 미정)</div>
+
+  <form method="get" class="rowform" action="/admin/prices" style="margin-top:10px">
+    <label>날짜</label>
+    <input type="date" name="date" value="{{ date }}">
+    <button class="btn primary" type="submit">조회</button>
+    <a class="btn" href="/admin/catalog?date={{ date }}">작업품목</a>
+  </form>
+
+  <div class="datebar" style="margin-top:10px">
+    <button id="btn_yesterday" class="btn small" type="button" onclick="setD(-1)">어제</button>
+    <button id="btn_today" class="btn small" type="button" onclick="setD(0)">오늘</button>
+    <button id="btn_tomorrow" class="btn small" type="button" onclick="setD(1)">내일</button>
+  </div>
+
+  <form method="post" action="/admin/prices" style="margin-top:14px">
+    <input type="hidden" name="date" value="{{ date }}">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>어종</th>
+          {% for s in fish_sizes %}<th>{{ s }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for ft in fish_types %}
+        <tr>
+          <td><b>{{ ft }}</b></td>
+          {% for sz in fish_sizes %}
+            {% set enabled = catalog.get((ft, sz), False) %}
+            {% set p = prices.get((ft, sz), None) %}
+            <td>
+              <input type="text" name="p__{{ ft }}__{{ sz }}" value="{% if p is none %}{% else %}{{ p }}{% endif %}"
+                     placeholder="{% if enabled %}예: 9500{% else %}비활성{% endif %}"
+                     {% if not enabled %}disabled{% endif %} style="width:100%">
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button class="btn primary" type="submit">저장</button>
+  </form>
+</div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function setD(delta){
+  const d = new Date();
+  d.setDate(d.getDate()+delta);
+  window.location.href = "/admin/prices?date=" + fmt(d);
+}
+
+function setActiveQuickButtons(){
+  try{
+    const input = document.querySelector('input[type="date"][name="date"]');
+    if(!input || !input.value) return;
+    const selected = new Date(input.value + "T00:00:00");
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diffDays = Math.round((selected - today) / (24*60*60*1000));
+    const byId = (id)=>document.getElementById(id);
+    const btns = [byId("btn_yesterday"), byId("btn_today"), byId("btn_tomorrow")].filter(Boolean);
+    btns.forEach(b=>b.classList.remove("primary"));
+    if(diffDays === -1 && byId("btn_yesterday")) byId("btn_yesterday").classList.add("primary");
+    else if(diffDays === 0 && byId("btn_today")) byId("btn_today").classList.add("primary");
+    else if(diffDays === 1 && byId("btn_tomorrow")) byId("btn_tomorrow").classList.add("primary");
+  }catch(e){}
+}
+document.addEventListener("DOMContentLoaded", setActiveQuickButtons);
+
+</script>
+{% endblock %}

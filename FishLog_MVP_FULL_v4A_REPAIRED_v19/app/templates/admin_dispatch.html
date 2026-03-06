@@ -1,0 +1,226 @@
+﻿{% extends "admin_base.html" %}
+{% block admin_content %}
+{% set ns = namespace(total=0, assigned=0, in_progress=0, delivered=0, unassigned=0, total_qty=0) %}
+{% for o in orders %}
+  {% set ns.total = ns.total + 1 %}
+  {% set ns.total_qty = ns.total_qty + (o.qty_kg or 0) %}
+  {% set is_assigned = (o.status == 'assigned') or (o.driver_user_id) or (o.vehicle_id) %}
+  {% if o.status == 'delivered' %}
+    {% set ns.delivered = ns.delivered + 1 %}
+  {% elif o.status == 'loaded' %}
+    {% set ns.in_progress = ns.in_progress + 1 %}
+  {% elif is_assigned %}
+    {% set ns.assigned = ns.assigned + 1 %}
+  {% else %}
+    {% set ns.unassigned = ns.unassigned + 1 %}
+  {% endif %}
+{% endfor %}
+
+<div class="card dispatch-board">
+  <div class="dispatch-header">
+    <div>
+      <h2>배차보드</h2>
+      <p class="muted">날짜별 주문을 빠르게 확인하고, 필터링 후 기사/차량을 바로 배정할 수 있습니다.</p>
+    </div>
+    <button class="btn primary" type="button" onclick="openNextUnassigned()">다음 미배차 배정</button>
+  </div>
+
+  <div class="dispatch-stats">
+    <div class="tile stat-card"><div class="k">주문수</div><div class="v">{{ ns.total }}</div></div>
+    <div class="tile stat-card"><div class="k">미배차</div><div class="v">{{ ns.unassigned }}</div></div>
+    <div class="tile stat-card"><div class="k">배차완료</div><div class="v">{{ ns.assigned + ns.in_progress }}</div></div>
+    <div class="tile stat-card"><div class="k">배송완료</div><div class="v">{{ ns.delivered }}</div></div>
+    <div class="tile stat-card"><div class="k">총 물량(kg)</div><div class="v">{{ ns.total_qty }}</div></div>
+  </div>
+
+  <div class="dispatch-toolbar">
+    <div class="datebar">
+      <button class="btn small {% if date==yesterday %}primary{% endif %}" type="button" onclick="setAdminDate(-1)">어제</button>
+      <button class="btn small {% if date==today %}primary{% endif %}" type="button" onclick="setAdminDate(0)">오늘</button>
+      <button class="btn small {% if date==tomorrow %}primary{% endif %}" type="button" onclick="setAdminDate(1)">내일</button>
+    </div>
+    <form method="get" class="rowform dispatch-date-form" action="/admin/dispatch">
+      <input type="date" name="date" value="{{ date }}">
+      <button class="btn" type="submit">날짜 선택</button>
+    </form>
+    <div class="dispatch-filters">
+      <input id="dispatchSearch" type="search" placeholder="거래처 / 지역 / 어종 / 주문ID 검색">
+      <label class="filter-check"><input id="onlyUnassigned" type="checkbox"> 미배차만 보기</label>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>거래처</th>
+          <th>지역</th>
+          <th>어종</th>
+          <th>사이즈</th>
+          <th>수량</th>
+          <th>상태</th>
+          <th>배차상태</th>
+        </tr>
+      </thead>
+      <tbody id="dispatchRows">
+        {% for o in orders %}
+        {% set is_assigned = (o.status=='assigned') or (o.driver_user_id) or (o.vehicle_id) %}
+        <tr class="dispatch-row {% if not is_assigned %}needs-assignment{% endif %}"
+            data-assigned="{{ 1 if is_assigned else 0 }}"
+            data-search="{{ o.id }} {{ o.customer_name }} {{ o.customer_region }} {{ o.fish_type }} {{ o.fish_size }} {{ o.status }}">
+          <td class="mono">{{ o.id }}</td>
+          <td><a href="/admin/orders/{{ o.id }}">{{ o.customer_name }}</a></td>
+          <td>{{ o.customer_region }}</td>
+          <td>{{ o.fish_type }}</td>
+          <td>{{ o.fish_size }}</td>
+          <td class="nowrap">{{ o.qty_kg }}kg</td>
+          <td>
+            <span class="badge {{ o.status }}">
+              {% if o.status == 'new' %}신규
+              {% elif o.status == 'assigned' %}배차완료
+              {% elif o.status == 'loaded' %}상차완료
+              {% elif o.status == 'delivered' %}배송완료
+              {% elif o.status == 'cancelled' %}취소
+              {% else %}{{ o.status }}
+              {% endif %}
+            </span>
+          </td>
+          <td>
+            {% if is_assigned %}
+              <div id="view-{{ o.id }}" class="assign-view">
+                <span class="badge assigned">배차완료</span>
+                <span class="mono">{{ o.driver_name or '기사 미지정' }}</span>
+                <span class="mono">{{ o.vehicle_name or '차량 미지정' }}</span>
+                <button class="btn small" type="button" onclick="enterEdit({{ o.id }})">수정</button>
+              </div>
+
+              <div id="edit-{{ o.id }}" class="assign-edit" hidden>
+                <form method="post" action="/admin/dispatch/assign" class="assign">
+                  <input type="hidden" name="order_id" value="{{ o.id }}">
+                  <input type="hidden" name="date" value="{{ date }}">
+                  <select name="driver_user_id" required>
+                    <option value="">기사 선택</option>
+                    {% for d in drivers %}
+                      <option value="{{ d.id }}" {% if o.driver_user_id==d.id %}selected{% endif %}>{{ d.display_name }} ({{ d.username }})</option>
+                    {% endfor %}
+                  </select>
+                  <select name="vehicle_id" required>
+                    <option value="">차량 선택</option>
+                    {% for v in vehicles %}
+                      <option value="{{ v.id }}" {% if o.vehicle_id==v.id %}selected{% endif %}>{{ v.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn small primary" type="submit">저장</button>
+                  <button class="btn small" type="button" onclick="cancelEdit({{ o.id }})">취소</button>
+                </form>
+              </div>
+            {% else %}
+              <div id="view-{{ o.id }}" class="assign-view">
+                <span class="badge new">미배차</span>
+                <button class="btn small primary" type="button" onclick="enterEdit({{ o.id }})">배정</button>
+              </div>
+
+              <div id="edit-{{ o.id }}" class="assign-edit" hidden>
+                <form method="post" action="/admin/dispatch/assign" class="assign">
+                  <input type="hidden" name="order_id" value="{{ o.id }}">
+                  <input type="hidden" name="date" value="{{ date }}">
+                  <select name="driver_user_id" required>
+                    <option value="">기사 선택</option>
+                    {% for d in drivers %}
+                      <option value="{{ d.id }}" {% if o.driver_user_id==d.id %}selected{% endif %}>{{ d.display_name }} ({{ d.username }})</option>
+                    {% endfor %}
+                  </select>
+                  <select name="vehicle_id" required>
+                    <option value="">차량 선택</option>
+                    {% for v in vehicles %}
+                      <option value="{{ v.id }}" {% if o.vehicle_id==v.id %}selected{% endif %}>{{ v.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn small primary" type="submit">저장</button>
+                  <button class="btn small" type="button" onclick="cancelEdit({{ o.id }})">취소</button>
+                </form>
+              </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        <tr id="dispatchEmptyHint" {% if orders|length > 0 %}style="display:none;"{% endif %}>
+          <td colspan="8" class="muted">현재 필터 조건에 맞는 주문이 없습니다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="actions">
+    <a class="btn" href="/admin">대시보드</a>
+    <a class="btn primary" href="/admin/customers">거래처 관리</a>
+  </div>
+</div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function setAdminDate(delta){
+  const d = new Date();
+  d.setDate(d.getDate()+delta);
+  const el = document.querySelector('input[name="date"]');
+  if (!el) return;
+  el.value = fmt(d);
+  if (el.form) el.form.submit();
+}
+
+function enterEdit(id){
+  const v = document.getElementById('view-'+id);
+  const e = document.getElementById('edit-'+id);
+  if (v) v.hidden = true;
+  if (e) e.hidden = false;
+}
+
+function cancelEdit(id){
+  const v = document.getElementById('view-'+id);
+  const e = document.getElementById('edit-'+id);
+  if (e) e.hidden = true;
+  if (v) v.hidden = false;
+}
+
+function openNextUnassigned(){
+  const row = document.querySelector('.dispatch-row[data-assigned="0"]');
+  if (!row) return;
+  const idCell = row.querySelector('.mono');
+  const id = idCell ? idCell.textContent.trim() : null;
+  if (!id) return;
+  enterEdit(id);
+  row.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function applyDispatchFilters(){
+  const search = document.getElementById('dispatchSearch');
+  const onlyUnassigned = document.getElementById('onlyUnassigned');
+  const rows = document.querySelectorAll('.dispatch-row');
+  const q = (search && search.value ? search.value : '').trim().toLowerCase();
+  const unassignedOnly = !!(onlyUnassigned && onlyUnassigned.checked);
+  let visible = 0;
+
+  rows.forEach((row)=>{
+    const text = (row.dataset.search || '').toLowerCase();
+    const assigned = row.dataset.assigned === '1';
+    const bySearch = q === '' || text.includes(q);
+    const byAssign = !unassignedOnly || !assigned;
+    const show = bySearch && byAssign;
+    row.style.display = show ? '' : 'none';
+    if (show) visible += 1;
+  });
+
+  const empty = document.getElementById('dispatchEmptyHint');
+  if (empty) empty.style.display = visible === 0 ? '' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const search = document.getElementById('dispatchSearch');
+  const onlyUnassigned = document.getElementById('onlyUnassigned');
+  if (search) search.addEventListener('input', applyDispatchFilters);
+  if (onlyUnassigned) onlyUnassigned.addEventListener('change', applyDispatchFilters);
+});
+</script>
+{% endblock %}

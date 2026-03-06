@@ -1,0 +1,39 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<div class="card narrow">
+  <h2>주문 상세</h2>
+  {% if not order %}
+    <div class="alert">주문을 찾을 수 없습니다.</div>
+  {% else %}
+    <div class="kv">
+      <div><span class="k">주문ID</span><span class="v">{{ order.id }}</span></div>
+      <div><span class="k">거래처</span><span class="v">{{ order.customer_name }}</span></div>
+      <div><span class="k">지역</span><span class="v">{{ order.customer_region }}</span></div>
+      <div><span class="k">도착일</span><span class="v">{{ order.delivery_date }}</span></div>
+      <div><span class="k">어종</span><span class="v">{{ order.fish_type }}</span></div>
+      <div><span class="k">수량</span><span class="v">{{ order.qty_kg }}kg</span></div>
+      <div><span class="k">상태</span><span class="v"><span class="badge {{ order.status }}">{{ order.status }}</span></span></div>
+      <div><span class="k">메모</span><span class="v">{{ order.note or "-" }}</span></div>
+      <div><span class="k">생성시간</span><span class="v">{{ order.created_at }}</span></div>
+    </div>
+  {% endif %}
+  <div class="actions"><a class="btn" href="/admin/dispatch?date={{ order.delivery_date }}">배차 보드로</a><a class="btn" href="/admin">대시보드</a></div>
+</div>
+
+    <div style="margin-top:14px;padding:12px;border:1px dashed #ddd;border-radius:12px">
+      <h3 style="margin:0 0 8px 0">할인 입력</h3>
+      <form method="post" action="/admin/orders/{{ order.id }}/discount" class="rowform">
+        <label>할인(원)</label>
+        <input type="number" name="discount_amount" min="0" value="{{ order.discount_amount or 0 }}">
+        <button class="btn primary" type="submit">저장</button>
+        <div class="muted small" style="margin-top:8px">
+          • 단가 미정이면 총액/실매출은 미정입니다.
+        </div>
+      </form>
+      <div class="small" style="margin-top:8px">
+        <b>실매출</b>:
+        {% if order.net_total is none %}미정{% else %}{{ "{:,}".format(order.net_total) }}원{% endif %}
+      </div>
+    </div>
+
+{% endblock %}

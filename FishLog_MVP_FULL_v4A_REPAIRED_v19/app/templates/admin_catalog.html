@@ -1,0 +1,72 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<div class="card">
+  <h2>작업 가능 품목 설정</h2>
+  <form method="get" class="rowform" action="/admin/catalog">
+    <label>날짜</label>
+    <input type="date" name="date" value="{{ date }}">
+    <button class="btn primary" type="submit">조회</button>
+  </form>
+
+  <div class="datebar" style="margin-top:10px">
+    <button id="btn_yesterday" class="btn small" type="button" onclick="setD(-1)">어제</button>
+    <button id="btn_today" class="btn small" type="button" onclick="setD(0)">오늘</button>
+    <button id="btn_tomorrow" class="btn small" type="button" onclick="setD(1)">내일</button>
+  </div>
+
+  <form method="post" action="/admin/catalog" style="margin-top:14px">
+    <input type="hidden" name="date" value="{{ date }}">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>어종</th>
+          {% for s in fish_sizes %}<th>{{ s }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for ft in fish_types %}
+        <tr>
+          <td><b>{{ ft }}</b></td>
+          {% for sz in fish_sizes %}
+            {% set en = catalog.get((ft, sz), False) %}
+            <td style="text-align:center">
+              <input type="checkbox" name="en__{{ ft }}__{{ sz }}" {% if en %}checked{% endif %}>
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button class="btn primary" type="submit">저장</button>
+    <a class="btn" href="/admin/prices?date={{ date }}">가격표 입력</a>
+  </form>
+</div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function setD(delta){
+  const d = new Date();
+  d.setDate(d.getDate()+delta);
+  window.location.href = "/admin/catalog?date=" + fmt(d);
+}
+
+function setActiveQuickButtons(){
+  try{
+    const input = document.querySelector('input[type="date"][name="date"]');
+    if(!input || !input.value) return;
+    const selected = new Date(input.value + "T00:00:00");
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diffDays = Math.round((selected - today) / (24*60*60*1000));
+    const byId = (id)=>document.getElementById(id);
+    const btns = [byId("btn_yesterday"), byId("btn_today"), byId("btn_tomorrow")].filter(Boolean);
+    btns.forEach(b=>b.classList.remove("primary"));
+    if(diffDays === -1 && byId("btn_yesterday")) byId("btn_yesterday").classList.add("primary");
+    else if(diffDays === 0 && byId("btn_today")) byId("btn_today").classList.add("primary");
+    else if(diffDays === 1 && byId("btn_tomorrow")) byId("btn_tomorrow").classList.add("primary");
+  }catch(e){}
+}
+document.addEventListener("DOMContentLoaded", setActiveQuickButtons);
+
+</script>
+{% endblock %}

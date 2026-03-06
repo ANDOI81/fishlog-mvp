@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card narrow">
+  <h2>{{ "관리자 로그인" if role == "owner" else "기사 로그인" }}</h2>
+  {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+  <form method="post">
+    <label>아이디</label><input name="username" autocomplete="username" required>
+    <label>비밀번호</label><input name="password" type="password" autocomplete="current-password" required>
+    <button class="btn primary" type="submit">로그인</button>
+  </form>
+  <div class="hint">
+    {% if role == "owner" %}<div>데모: <b>owner / owner1234</b></div>
+    {% else %}<div>데모: <b>driver1 / driver1234</b>, <b>driver2 / driver1234</b></div>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card narrow">
+  <h2>주문이 접수되었습니다 ✅</h2>
+  <p>거래처 <b>{{ customer.name }}</b> 주문이 정상 접수되었습니다.</p>
+  <a class="btn primary" href="/o/{{ customer.token }}">추가 주문하기</a>
+  <a class="btn" href="/">홈으로</a>
+</div>
+{% endblock %}

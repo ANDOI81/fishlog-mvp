@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>{{ customer.name }} 주문내역</h2>
+  <form method="get" class="rowform" action="/o/{{ customer.token }}/history">
+    <label>조회 날짜</label>
+    <input type="date" name="date" value="{{ date }}">
+    <button class="btn primary" type="submit">조회</button>
+    <a class="btn" href="/o/{{ customer.token }}">주문하러가기</a>
+  </form>
+
+  <div class="datebar" style="margin-top:10px">
+    <button class="btn small" type="button" onclick="setD(-1)">어제</button>
+    <button class="btn small primary" type="button" onclick="setD(0)">오늘</button>
+    <button class="btn small" type="button" onclick="setD(1)">내일</button>
+  </div>
+
+  <div class="small" style="margin-top:10px">
+    <b>확정 총액</b>: {{ "{:,}".format(total_known) }}원
+    <span class="muted">/ 단가 미정 {{ total_unknown }}건</span>
+  </div>
+
+  <table class="table" style="margin-top:10px">
+    <thead>
+      <tr><th>시간</th><th>어종</th><th>사이즈</th><th>수량</th><th>단가</th><th>총액</th><th>할인</th><th>실매출</th><th>상태</th></tr>
+    </thead>
+    <tbody>
+    {% for o in orders %}
+      <tr>
+        <td>{{ o.created_at }}</td>
+        <td>{{ o.fish_type }}</td>
+        <td>{{ o.fish_size }}</td>
+        <td>{{ o.qty_kg }}kg</td>
+        <td>{% if o.unit_price is none %}미정{% else %}{{ "{:,}".format(o.unit_price) }}{% endif %}</td>
+        <td>{% if o.total_price is none %}미정{% else %}{{ "{:,}".format(o.total_price) }}{% endif %}</td><td>{{ "{:,}".format(o.discount_amount or 0) }}</td><td>{% if o.net_total is none %}미정{% else %}{{ "{:,}".format(o.net_total) }}{% endif %}</td>
+        <td>{{ o.status }}</td>
+      </tr>
+    {% endfor %}
+    {% if orders|length == 0 %}
+      <tr><td colspan="9" class="muted">해당 날짜 주문이 없습니다.</td></tr>
+    {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function setD(delta){
+  const d = new Date();
+  d.setDate(d.getDate()+delta);
+  window.location.href = "/o/{{ customer.token }}/history?date=" + fmt(d);
+}
+</script>
+{% endblock %}

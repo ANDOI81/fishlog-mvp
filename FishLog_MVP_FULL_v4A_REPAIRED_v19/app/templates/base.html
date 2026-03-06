@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "FishLog MVP" }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🐟</div>
+      <div>
+        <div class="name">FishLog MVP</div>
+        <div class="sub">활어 주문 · 배차 · 기사 진행 상태</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="/">홈</a>
+      <a href="/admin">관리자</a>
+      <a href="/driver">기사</a>
+      {% if session %}
+        <span class="chip">{{ session.display_name }}</span>
+        <a class="btn ghost" href="/logout">로그아웃</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container">{% block content %}{% endblock %}</main>
+  <footer class="footer"><small>© FishLog MVP · 로컬 테스트용</small></footer>
+</body>
+</html>

@@ -1,0 +1,167 @@
+﻿{% extends "base.html" %}
+{% block content %}
+{% set ns = namespace(total=0, pending=0, delivered=0) %}
+{% for o in orders %}
+  {% set ns.total = ns.total + 1 %}
+  {% if o.status == 'delivered' %}
+    {% set ns.delivered = ns.delivered + 1 %}
+  {% else %}
+    {% set ns.pending = ns.pending + 1 %}
+  {% endif %}
+{% endfor %}
+
+<div class="card driver-board driver-v2">
+  <h2>기사용 배차 페이지</h2>
+  <p class="muted">중요 정보(거래처/위치/물량/연락처) 중심으로 빠르게 처리하세요.</p>
+
+  <div class="driver-summary">
+    <div class="tile driver-summary-card"><div class="k">전체</div><div class="v">{{ ns.total }}</div></div>
+    <div class="tile driver-summary-card"><div class="k">배차완료</div><div class="v">{{ ns.pending }}</div></div>
+    <div class="tile driver-summary-card"><div class="k">배송완료</div><div class="v">{{ ns.delivered }}</div></div>
+  </div>
+
+  <div class="datebar driver-datebar">
+    <button class="btn lg {% if date==yesterday %}primary{% endif %}" type="button" onclick="setDriverDate(-1)">어제</button>
+    <button class="btn lg {% if date==today %}primary{% endif %}" type="button" onclick="setDriverDate(0)">오늘</button>
+    <button class="btn lg {% if date==tomorrow %}primary{% endif %}" type="button" onclick="setDriverDate(1)">내일</button>
+  </div>
+
+  <form method="get" class="rowform driver-dateform" action="/driver">
+    <input type="date" name="date" value="{{ date }}">
+    <button class="btn lg" type="submit">조회</button>
+  </form>
+
+  <div class="driver-filters panel">
+    <input id="driverSearch" type="search" placeholder="거래처 / 지역 / 어종 검색">
+    <label class="filter-check"><input id="driverPendingOnly" type="checkbox"> 미완료만 보기</label>
+  </div>
+
+  <div class="driver-order-list" id="driverOrderList">
+    {% for o in orders if o.status != 'delivered' %}
+    {% set loc = (o.customer_address or o.customer_region or '') %}
+    {% set phone = (o.customer_phone or '') %}
+    <article class="driver-order-row"
+             data-done="0"
+             data-search="{{ o.customer_name }} {{ o.customer_region }} {{ o.customer_address or '' }} {{ o.fish_type }}">
+      <div class="driver-order-main compact">
+        <div class="driver-order-top">
+          <strong class="driver-customer big">{{ o.customer_name }}</strong>
+          <span class="qty-chip">{{ o.qty_kg }}kg</span>
+        </div>
+        <div class="driver-order-sub muted line2">
+          {% if loc %}
+            <a href="#" onclick='openMap({{ loc|tojson }}); return false;' class="driver-link">📍 {{ loc }}</a>
+          {% else %}
+            <span>📍 위치 미입력</span>
+          {% endif %}
+          <span class="dot">·</span>
+          {% if phone %}
+            <a href="tel:{{ phone }}" class="driver-link">📞 {{ phone }}</a>
+          {% else %}
+            <span>📞 연락처 미입력</span>
+          {% endif %}
+        </div>
+        <div class="driver-order-sub muted line3">
+          {{ o.fish_type }} {{ o.fish_size }} | 차량 {{ o.vehicle_name }} | 상태
+          {% if o.status == 'new' %}신규{% elif o.status == 'assigned' %}배차완료{% elif o.status == 'loaded' %}상차완료{% else %}진행중{% endif %}
+        </div>
+      </div>
+      <div class="driver-order-action">
+        <form method="post" action="/driver/status" onsubmit="return confirm('해당 주문을 배송 완료 처리할까요?')">
+          <input type="hidden" name="order_id" value="{{ o.id }}">
+          <input type="hidden" name="date" value="{{ date }}">
+          <input type="hidden" name="status" value="delivered">
+          <button class="btn lg primary done-btn" type="submit">배송 완료</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+
+    {% for o in orders if o.status == 'delivered' %}
+    {% set loc = (o.customer_address or o.customer_region or '') %}
+    {% set phone = (o.customer_phone or '') %}
+    <article class="driver-order-row done"
+             data-done="1"
+             data-search="{{ o.customer_name }} {{ o.customer_region }} {{ o.customer_address or '' }} {{ o.fish_type }}">
+      <div class="driver-order-main compact">
+        <div class="driver-order-top">
+          <strong class="driver-customer big">{{ o.customer_name }}</strong>
+          <span class="qty-chip">{{ o.qty_kg }}kg</span>
+        </div>
+        <div class="driver-order-sub muted line2">
+          {% if loc %}
+            <a href="#" onclick='openMap({{ loc|tojson }}); return false;' class="driver-link">📍 {{ loc }}</a>
+          {% else %}
+            <span>📍 위치 미입력</span>
+          {% endif %}
+          <span class="dot">·</span>
+          {% if phone %}
+            <a href="tel:{{ phone }}" class="driver-link">📞 {{ phone }}</a>
+          {% else %}
+            <span>📞 연락처 미입력</span>
+          {% endif %}
+        </div>
+        <div class="driver-order-sub muted line3">
+          {{ o.fish_type }} {{ o.fish_size }} | 차량 {{ o.vehicle_name }} | 상태 배송완료
+        </div>
+      </div>
+      <div class="driver-order-action done-actions">
+        <span class="badge delivered done-pill">완료</span>
+        <form method="post" action="/driver/status" onsubmit="return confirm('배송완료를 되돌려 배차완료로 변경할까요?')">
+          <input type="hidden" name="order_id" value="{{ o.id }}">
+          <input type="hidden" name="date" value="{{ date }}">
+          <input type="hidden" name="status" value="assigned">
+          <button class="btn small" type="submit">되돌리기</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+
+    <div id="driverEmptyHint" class="panel muted" {% if orders|length > 0 %}style="display:none;"{% endif %}>조건에 맞는 주문이 없습니다.</div>
+  </div>
+</div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function setDriverDate(delta){
+  const d = new Date();
+  d.setDate(d.getDate()+delta);
+  const el = document.querySelector('input[name="date"]');
+  if (!el) return;
+  el.value = fmt(d);
+  if (el.form) el.form.submit();
+}
+
+function openMap(locationText){
+  if (!locationText) return;
+  const url = 'https://map.naver.com/v5/search/' + encodeURIComponent(locationText);
+  window.open(url, '_blank', 'noopener');
+}
+
+function applyDriverFilters(){
+  const q = (document.getElementById('driverSearch')?.value || '').trim().toLowerCase();
+  const pendingOnly = !!document.getElementById('driverPendingOnly')?.checked;
+  const rows = document.querySelectorAll('.driver-order-row');
+  let visible = 0;
+
+  rows.forEach((row)=>{
+    const text = (row.dataset.search || '').toLowerCase();
+    const isDone = row.dataset.done === '1';
+    const bySearch = q === '' || text.includes(q);
+    const byPending = !pendingOnly || !isDone;
+    const show = bySearch && byPending;
+    row.style.display = show ? '' : 'none';
+    if (show) visible += 1;
+  });
+
+  const empty = document.getElementById('driverEmptyHint');
+  if (empty) empty.style.display = visible === 0 ? '' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('driverSearch')?.addEventListener('input', applyDriverFilters);
+  document.getElementById('driverPendingOnly')?.addEventListener('change', applyDriverFilters);
+});
+</script>
+{% endblock %}

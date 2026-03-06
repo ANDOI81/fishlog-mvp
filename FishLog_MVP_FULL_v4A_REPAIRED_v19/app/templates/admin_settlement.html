@@ -1,0 +1,60 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<div class="card">
+  <h2>월간 정산</h2>
+  <form method="get" class="rowform" action="/admin/settlement">
+    <label>월(YYYY-MM)</label>
+    <input type="text" name="month" value="{{ month }}" placeholder="예: 2026-02">
+    <button class="btn primary" type="submit">조회</button>
+    <a class="btn" href="/admin/settlement.xlsx?month={{ month }}">엑셀 다운로드</a>
+  </form>
+
+  <div class="small" style="margin-top:10px">
+    <b>총 주문</b> {{ data.totals.order_count }}건 / <b>총 수량</b> {{ data.totals.total_kg }}kg
+    <span class="muted">| 단가 미정 {{ data.totals.unknown_price_count }}건</span>
+  </div>
+
+  <table class="table" style="margin-top:10px">
+    <thead>
+      <tr><th>항목</th><th>금액</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>총 매출(총액 합계)</td><td>{{ "{:,}".format(data.totals.gross_sum) }}원</td></tr>
+      <tr><td>총 할인</td><td>{{ "{:,}".format(data.totals.discount_sum) }}원</td></tr>
+      <tr><td><b>총 실매출(총액-할인)</b></td><td><b>{{ "{:,}".format(data.totals.net_sum) }}원</b></td></tr>
+      <tr><td>월 입금 합계</td><td>{{ "{:,}".format(data.totals.paid_sum) }}원</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:18px">거래처별 합계</h3>
+  <table class="table" style="margin-top:8px">
+    <thead>
+      <tr>
+        <th>거래처</th><th>지역</th><th>주문</th><th>수량</th>
+        <th>매출</th><th>할인</th><th>실매출</th><th>월입금</th><th>단가미정</th><th>현재미수금</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in data.rows %}
+      <tr>
+        <td><a href="/admin/customers/{{ r.customer_id }}?month={{ month }}">{{ r.customer_name }}</a></td>
+        <td>{{ r.customer_region }}</td>
+        <td>{{ r.order_count }}</td>
+        <td>{{ r.total_kg }}kg</td>
+        <td>{{ "{:,}".format(r.gross_sum) }}</td>
+        <td>{{ "{:,}".format(r.discount_sum) }}</td>
+        <td><b>{{ "{:,}".format(r.net_sum) }}</b></td>
+        <td>{{ "{:,}".format(r.paid_sum) }}</td>
+        <td>{{ r.unknown_price_count }}</td>
+        <td><b>{{ "{:,}".format(r.balance) }}</b></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="muted small" style="margin-top:10px">
+    • ‘현재미수금’은 전체 기간 기준으로 (총매출-총할인-총입금) 입니다. <br>
+    • ‘월입금’은 선택한 월에 등록된 입금 합계입니다.
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "admin_base.html" %}
+{% block admin_content %}
+<div class="card">
+  <h2>거래처 상세: {{ customer.name }}</h2>
+  <div class="muted small">{{ customer.region }}</div>
+
+  <form method="get" class="rowform" action="/admin/customers/{{ customer.id }}" style="margin-top:10px">
+    <label>월(YYYY-MM)</label>
+    <input type="text" name="month" value="{{ month }}">
+    <button class="btn primary" type="submit">조회</button>
+    <a class="btn" href="/admin/settlement?month={{ month }}">월정산으로</a>
+  </form>
+
+  {% if stat %}
+  <table class="table" style="margin-top:10px">
+    <thead><tr><th colspan="2">{{ month }} 합계</th></tr></thead>
+    <tbody>
+      <tr><td>주문건수</td><td>{{ stat.order_count }}</td></tr>
+      <tr><td>총수량</td><td>{{ stat.total_kg }}kg</td></tr>
+      <tr><td>매출합계</td><td>{{ "{:,}".format(stat.gross_sum) }}원</td></tr>
+      <tr><td>할인합계</td><td>{{ "{:,}".format(stat.discount_sum) }}원</td></tr>
+      <tr><td><b>실매출</b></td><td><b>{{ "{:,}".format(stat.net_sum) }}원</b></td></tr>
+      <tr><td>월입금</td><td>{{ "{:,}".format(stat.paid_sum) }}원</td></tr>
+      <tr><td>단가미정</td><td>{{ stat.unknown_price_count }}건</td></tr>
+      <tr><td><b>현재미수금</b></td><td><b>{{ "{:,}".format(stat.balance) }}원</b></td></tr>
+    </tbody>
+  </table>
+  {% endif %}
+
+  <h3 style="margin-top:18px">입금 등록</h3>
+  <form method="post" action="/admin/customers/{{ customer.id }}/payments/add" class="rowform">
+    <input type="hidden" name="month" value="{{ month }}">
+    <label>입금일</label>
+    <input type="date" name="paid_date" value="{{ (month ~ '-01') }}">
+    <label>금액(원)</label>
+    <input type="number" name="amount" min="0" required>
+    <label>방식</label>
+    <select name="method">
+      {% for m in methods %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+    </select>
+    <label>비고</label>
+    <input type="text" name="note" placeholder="통장/카드/메모">
+    <button class="btn primary" type="submit">등록</button>
+  </form>
+
+  <h3 style="margin-top:18px">입금 내역 ({{ month }})</h3>
+  <table class="table" style="margin-top:8px">
+    <thead><tr><th>날짜</th><th>금액</th><th>방식</th><th>비고</th><th></th></tr></thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td>{{ p.paid_date }}</td>
+        <td>{{ "{:,}".format(p.amount) }}원</td>
+        <td>{{ p.method }}</td>
+        <td>{{ p.note }}</td>
+        <td>
+          <form method="post" action="/admin/payments/{{ p.id }}/delete" style="display:inline">
+            <input type="hidden" name="customer_id" value="{{ customer.id }}">
+            <input type="hidden" name="month" value="{{ month }}">
+            <button class="btn small" type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if payments|length == 0 %}
+      <tr><td colspan="5" class="muted">이번 달 입금 내역이 없습니다.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

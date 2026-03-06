@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="margin-bottom:12px">
+  <div class="muted small">관리자 메뉴</div>
+  <div class="datebar" style="margin-top:8px">
+    <a class="btn small" href="/admin">대시보드</a>
+    <a class="btn small" href="/admin/dispatch">배차보드</a>
+    <a class="btn small" href="/admin/customers">거래처</a>
+    <a class="btn small" href="/admin/catalog">작업품목</a>
+    <a class="btn small" href="/admin/prices">가격표</a>
+    <a class="btn small" href="/admin/settlement">월정산</a>
+  </div>
+</div>
+{% block admin_content %}{% endblock %}
+{% endblock %}
