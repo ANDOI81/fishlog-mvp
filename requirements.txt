@@ -3,7 +3,6 @@ uvicorn==0.30.6
 jinja2==3.1.4
 python-multipart==0.0.9
 itsdangerous==2.2.0
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.11
 openpyxl==3.1.5
 python-dotenv==1.0.1
-psycopg2-binary
