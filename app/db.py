@@ -52,7 +52,7 @@ class PgCursor:
 class PgConnection:
     def __init__(self, dsn: str):
         if psycopg2 is None:
-            raise RuntimeError("psycopg2-binary is required when DATABASE_URL is set")
+            raise RuntimeError("psycopg2 is required when DATABASE_URL is set")
         self._conn = psycopg2.connect(_normalize_database_url(dsn), cursor_factory=DictCursor)
 
     def cursor(self) -> PgCursor:
