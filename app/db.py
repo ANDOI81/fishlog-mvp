@@ -48,7 +48,7 @@ class PgCursor:
     def fetchall(self):
         return self._cur.fetchall()
 
-f
+
 class PgConnection:
     def __init__(self, dsn: str):
         if psycopg2 is None:
