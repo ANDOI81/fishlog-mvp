@@ -48,7 +48,7 @@ class PgCursor:
     def fetchall(self):
         return self._cur.fetchall()
 
-
+f
 class PgConnection:
     def __init__(self, dsn: str):
         if psycopg2 is None:
@@ -308,9 +308,7 @@ def init_db() -> None:
     _ensure_column(conn, "customers", "phone", "TEXT")
     _ensure_column(conn, "customers", "address", "TEXT")
 
-    cur.execute("UPDATE customers SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP)")
-
-    cur.execute("SELECT id FROM users WHERE username=?", ("owner",))
+       cur.execute("SELECT id FROM users WHERE username=?", ("owner",))
     if cur.fetchone() is None:
         cur.execute(
             "INSERT INTO users(username, password_hash, role, display_name) VALUES (?,?,?,?)",
