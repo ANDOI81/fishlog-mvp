@@ -53,8 +53,12 @@ app.include_router(admin.router)
 app.include_router(dispatch.router)
 app.include_router(driver.router)
 
+from pathlib import Path
 from fastapi.responses import FileResponse
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_SITE_DIR = BASE_DIR / "appstatic-site"
 
 @app.get("/home")
 def homepage():
-    return FileResponse("appstatic-site/index.html")
+    return FileResponse(STATIC_SITE_DIR / "index.html")
