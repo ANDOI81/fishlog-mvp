@@ -52,3 +52,9 @@ app.include_router(public.router)
 app.include_router(admin.router)
 app.include_router(dispatch.router)
 app.include_router(driver.router)
+
+from fastapi.responses import FileResponse
+
+@app.get("/home")
+def homepage():
+    return FileResponse("appstatic-site/index.html")
