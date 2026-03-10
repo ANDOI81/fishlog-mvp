@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>피쉬팡 Fishpang</title>
+  <style>
+    :root {
+      --bg: #f7fbff;
+      --text: #0b1220;
+      --muted: #4b5b76;
+      --blue: #1e6bff;
+      --blue-dark: #0f3e9f;
+      --line: #d9e7ff;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
+
+    .brand-mini-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(30,107,255,.08);
+    }
+
+    .brand-mini-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 40px;
+      align-items: center;
+      min-height: 72vh;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      color: var(--blue-dark);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(38px, 6vw, 68px);
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+
+    .subtitle {
+      margin-top: 18px;
+      font-size: clamp(18px, 2.2vw, 24px);
+      color: var(--muted);
+      line-height: 1.55;
+      letter-spacing: -.02em;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      padding: 0 24px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+      box-shadow: 0 14px 34px rgba(30,107,255,.22);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--line);
+      color: var(--blue-dark);
+      background: white;
+    }
+
+    .hero-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 16px 48px rgba(15,62,159,.08);
+    }
+
+    .logo-stage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .logo-stage img {
+      width: min(100%, 430px);
+      height: auto;
+      display: block;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .chip {
+      background: #eef5ff;
+      color: var(--blue-dark);
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .section {
+      margin-top: 72px;
+    }
+
+    .section h2 {
+      margin: 0 0 18px;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing: -.03em;
+    }
+
+    .section p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .feature-grid {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 10px 26px rgba(15,62,159,.05);
+    }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--blue-dark);
+      margin-bottom: 10px;
+    }
+
+    .feature-desc {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    footer {
+      margin-top: 72px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+      color: #6d7b95;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+      .topbar {
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand-mini">
+        <div class="brand-mini-badge">
+          <img src="fishpang-logo.png" alt="피쉬팡 로고" />
+        </div>
+        <span>피쉬팡 Fishpang</span>
+      </div>
+      <a class="btn btn-secondary" href="https://app.fishpang.kr">주문 시스템</a>
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">피쉬팡 Fishpang</div>
+        <h1>수산 유통의<br />흐름을 바꾼다</h1>
+        <div class="subtitle">FishLog<br />주문 관리와 배송을 하나의 플랫폼에서</div>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://app.fishpang.kr">주문 시스템 시작</a>
+        </div>
+        <div class="chips">
+          <span class="chip">실시간 주문 시스템</span>
+          <span class="chip">배송 / 배차 관리</span>
+          <span class="chip">거래처 전용 주문 페이지</span>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="logo-stage">
+          <img src="fishpang-logo.png" alt="Fishpang Logo" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>FishLog</h2>
+      <p>
+        피쉬팡은 수산 유통 현장의 주문 관리와 배송 배차를 더 빠르고 정확하게 연결합니다.
+        거래처 주문부터 기사 배차까지, 복잡한 흐름을 하나의 시스템으로 정리합니다.
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="feature-title">실시간 주문 시스템</div>
+          <div class="feature-desc">거래처 주문을 빠르게 받고 한 화면에서 확인할 수 있습니다.</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">배송 / 배차 관리</div>
+          <div class="feature-desc">기사별 배차와 진행 상태를 실시간으로 관리할 수 있습니다.</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">거래처 전용 주문 페이지</div>
+          <div class="feature-desc">거래처별 전용 링크로 더 간단하고 정확하게 주문을 받을 수 있습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © Fishpang Co., Ltd.
+    </footer>
+  </div>
+</body>
+</html>
