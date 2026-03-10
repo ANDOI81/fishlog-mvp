@@ -61,4 +61,4 @@ STATIC_SITE_DIR = BASE_DIR / "appstatic-site"
 
 @app.get("/home")
 def homepage():
-    return FileResponse(STATIC_SITE_DIR / "index.html")
+    return FileResponse("app/appstatic-site/index.html")
