@@ -17,7 +17,7 @@ logger = logging.getLogger("fishlog")
 app = FastAPI(title="FishLog MVP", version="1.0")
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
+app.mount("/appstatic-site", StaticFiles(directory="appstatic-site"), name="appstatic-site")
 
 @app.middleware("http")
 async def log_request_errors(request: Request, call_next):
