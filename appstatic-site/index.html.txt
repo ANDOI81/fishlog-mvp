@@ -1,0 +1,2 @@
+app/static-site/index.html
+app/static-site/logo.png
