@@ -1,24 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FishPang</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>피쉬팡 Fishpang</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #0b1220;
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      margin-bottom: 30px;
+    }
+
+    .logo img {
+      width: 220px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 52px;
+      margin: 0 0 20px;
+      color: #0f3e9f;
+    }
+
+    .subtitle {
+      font-size: 24px;
+      color: #4b5b76;
+      margin-bottom: 40px;
+    }
+
+    .button {
+      display: inline-block;
+      background: #1e6bff;
+      color: white;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .features {
+      margin-top: 60px;
+      display: grid;
+      gap: 16px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .feature {
+      border: 1px solid #d9e7ff;
+      border-radius: 16px;
+      padding: 20px;
+      background: #f7fbff;
+      font-size: 18px;
+      color: #0f3e9f;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 60px;
+      color: #6d7b95;
+      font-size: 14px;
+    }
+  </style>
 </head>
-<body class="company-body">
-  <main class="company-shell">
-    <section class="company-hero card">
-      <div class="eyebrow">FishPang</div>
-      <h1>신선한 수산 유통을 더 빠르고 정확하게.</h1>
-      <p class="lead">
-        피쉬팡 홈페이지입니다. 주문 시스템은 별도 서비스에서 운영되며,
-        아래 버튼으로 바로 이동할 수 있습니다.
-      </p>
-      <div class="actions">
-        <a class="btn primary lg" href="{{ app_url }}">주문 시스템 시작</a>
-      </div>
-    </section>
-  </main>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="/appstatic-site/fishpang-logo.png" width="220" alt="Fishpang 로고">
+    </div>
+
+    <h1>수산 유통의 흐름을 바꾼다</h1>
+    <div class="subtitle">주문 관리와 배송을 하나의 플랫폼에서</div>
+
+    <a class="button" href="{{ app_url }}">주문 시스템 시작</a>
+
+    <div class="features">
+      <div class="feature">실시간 주문 시스템</div>
+      <div class="feature">배송 / 배차 관리</div>
+      <div class="feature">거래처 전용 주문 페이지</div>
+    </div>
+
+    <footer>© Fishpang Co., Ltd.</footer>
+  </div>
 </body>
 </html>
