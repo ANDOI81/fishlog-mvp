@@ -19,6 +19,16 @@ templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/appstatic-site", StaticFiles(directory="appstatic-site"), name="appstatic-site")
 
+
+def _request_host(request: Request) -> str:
+    forwarded_host = request.headers.get("x-forwarded-host", "").split(",")[0].strip().lower()
+    host = forwarded_host or request.headers.get("host", "").strip().lower()
+    return host.split(":")[0]
+
+
+def _is_company_domain(host: str) -> bool:
+    return host in {settings.PRIMARY_DOMAIN, f"www.{settings.PRIMARY_DOMAIN}"}
+
 @app.middleware("http")
 async def log_request_errors(request: Request, call_next):
     try:
@@ -44,7 +54,13 @@ def _startup():
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    host = _request_host(request)
+    if _is_company_domain(host):
+        return templates.TemplateResponse(
+            "home.html",
+            {"request": request, "app_url": settings.APP_BASE_URL},
+        )
+    return templates.TemplateResponse("system_home.html", {"request": request})
 
 
 app.include_router(auth.router)
@@ -53,12 +69,9 @@ app.include_router(admin.router)
 app.include_router(dispatch.router)
 app.include_router(driver.router)
 
-from pathlib import Path
-from fastapi.responses import FileResponse
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_SITE_DIR = BASE_DIR / "appstatic-site"
-
-@app.get("/home")
-def homepage():
-    return FileResponse("appstatic-site/index.html")
+@app.get("/home", response_class=HTMLResponse)
+def company_home(request: Request):
+    return templates.TemplateResponse(
+        "home.html",
+        {"request": request, "app_url": settings.APP_BASE_URL},
+    )

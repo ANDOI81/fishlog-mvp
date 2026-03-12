@@ -1,18 +1,24 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
-  <h1>서버가 실행 중입니다 ✅</h1>
-  <p>이 화면이 보이면 FishLog MVP가 정상 동작 중입니다.</p>
-  <div class="grid">
-    <a class="tile" href="/admin/login"><div class="t">관리자 로그인</div><div class="d">주문 확인 · 거래처 링크 · 배차</div></a>
-    <a class="tile" href="/driver/login"><div class="t">기사 로그인</div><div class="d">배정 주문 확인 · 상차/납품 처리</div></a>
-  </div>
-  <hr>
-  <h3>카카오톡 주문 링크는 어디서?</h3>
-  <ol>
-    <li>관리자 로그인</li>
-    <li><b>거래처 관리</b>에서 거래처별 주문 링크 복사</li>
-    <li>그 링크를 카톡으로 전달</li>
-  </ol>
-</div>
-{% endblock %}
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FishPang</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="company-body">
+  <main class="company-shell">
+    <section class="company-hero card">
+      <div class="eyebrow">FishPang</div>
+      <h1>신선한 수산 유통을 더 빠르고 정확하게.</h1>
+      <p class="lead">
+        피쉬팡 홈페이지입니다. 주문 시스템은 별도 서비스에서 운영되며,
+        아래 버튼으로 바로 이동할 수 있습니다.
+      </p>
+      <div class="actions">
+        <a class="btn primary lg" href="{{ app_url }}">주문 시스템 시작</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

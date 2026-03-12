@@ -20,6 +20,9 @@ class Settings:
         os.path.join(os.path.dirname(__file__), "..", "..", "data", "app.db"),
     )
     BASE_URL: str = os.getenv("BASE_URL", "").strip()
+    APP_BASE_URL: str = os.getenv("APP_BASE_URL", "https://app.fishpang.kr").strip()
+    PRIMARY_DOMAIN: str = os.getenv("PRIMARY_DOMAIN", "fishpang.kr").strip().lower()
+    APP_DOMAIN: str = os.getenv("APP_DOMAIN", "app.fishpang.kr").strip().lower()
     APP_ENV: str = os.getenv("APP_ENV", "local").strip().lower()
     DYNO: str = os.getenv("DYNO", "").strip()
 

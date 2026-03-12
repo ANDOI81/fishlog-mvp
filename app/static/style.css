@@ -57,6 +57,13 @@ textarea{resize:vertical}
 .kv .k{display:inline-block;min-width:90px}
 .kv .v{font-weight:700}
 .footer{padding:18px;text-align:center;color:var(--muted)}
+.company-body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.company-shell{width:min(920px,100%)}
+.company-hero{padding:40px 28px;text-align:center}
+.company-hero h1{margin:10px 0 14px;font-size:clamp(32px,5vw,52px);line-height:1.1}
+.company-hero .lead{max-width:640px;margin:0 auto;color:var(--muted);font-size:16px;line-height:1.7}
+.company-hero .actions{justify-content:center;margin-top:22px}
+.eyebrow{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;border:1px solid rgba(73,209,125,.45);border-radius:999px;background:rgba(73,209,125,.08);color:#9ff0ba;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 
 .datebar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 
